@@ -1,34 +1,33 @@
 package com.example.ecommerce.service;
 
-import com.example.ecommerce.exceptions.UserExistException;
 import com.example.ecommerce.models.User;
 import com.example.ecommerce.repositories.UserRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
-
-import java.util.Optional;
 
 @Service
 public class UserService {
+
+    @Autowired
     private UserRepository userRepository;
 
-    public UserService(UserRepository userRepository){
-        this.userRepository=userRepository;
+    @Autowired
+    private BCryptPasswordEncoder passwordEncoder;
+
+    public User registerUser(String email, String password, String name) {
+        User user = new User();
+        user.setEmail(email);
+        user.setPassword(passwordEncoder.encode(password));
+        user.setName(name);
+        return userRepository.save(user);
     }
 
-    public void createUser(User user) {
-        userRepository.findByEmail(user.getEmail())
-                .ifPresent(existingUser->{
-                    throw new UserExistException("User already exist.Try logging in!");
-                });
+    public User findByEmail(String email) {
+        return userRepository.findByEmail(email);
+    }
 
-        User newUser=User.builder()
-                .username(user.getUsername())
-                .email(user.getEmail())
-                .firstName(user.getFirstName())
-                .lastName(user.getLastName())
-                .password(user.getPassword())
-                .profileImage(user.getProfileImage())
-                .build();
-        userRepository.save(newUser);
+    public User findByGoogleId(String googleId) {
+        return userRepository.findByGoogleId(googleId);
     }
 }
